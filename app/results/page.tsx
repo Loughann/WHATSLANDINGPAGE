@@ -441,7 +441,7 @@ export default function ResultsPage() {
             </p>
             <div className="text-center mt-8">
               <Button
-                onClick={() => window.open("https://checkoutwhats.netlify.app/", "_blank")}
+                onClick={() => window.open("https://whatscheckout.netlify.app/", "_blank")}
                 className="w-full sm:w-auto py-4 px-6 sm:px-8 rounded-xl text-base sm:text-lg font-bold shadow-xl hover:opacity-90 hover:shadow-2xl hover:scale-105 transition-all animate-led-pulse border-2 text-neutral-900"
                 style={{
                   background: "linear-gradient(45deg, #25D366, #14FE00)",
@@ -772,7 +772,7 @@ export default function ResultsPage() {
 
             <div className="text-center">
               <Button
-                onClick={() => window.open("https://checkoutwhats.netlify.app/", "_blank")}
+                onClick={() => window.open("https://whatscheckout.netlify.app/", "_blank")}
                 className="w-full sm:w-auto py-4 px-6 sm:px-8 rounded-xl text-base sm:text-lg font-bold shadow-xl hover:opacity-90 hover:shadow-2xl hover:scale-105 transition-all animate-led-pulse border-2 text-neutral-900 mb-4"
                 style={{
                   background: "linear-gradient(45deg, #25D366, #14FE00)",
