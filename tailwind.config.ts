@@ -384,6 +384,16 @@ const config = {
             opacity: "1",
           },
         },
+        "text-pulse-subtle": {
+          "0%, 100%": {
+            opacity: "1",
+            transform: "scale(1)",
+          },
+          "50%": {
+            opacity: "0.9", // Levemente menos opaco
+            transform: "scale(1.01)", // Levemente maior
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -408,6 +418,7 @@ const config = {
         "typing-loading": "typing-loading 4s ease-in-out infinite",
         "typing-completion-message": "typing-completion-message 2s ease-in-out forwards",
         "led-text-glow": "led-text-glow 3s ease-in-out infinite",
+        "text-pulse-subtle": "text-pulse-subtle 2s ease-in-out infinite",
       },
       backgroundImage: {
         "gradient-main":

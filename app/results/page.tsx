@@ -13,6 +13,8 @@ import {
   Heart,
   PhoneCall,
   ShieldCheck,
+  Star,
+  Navigation,
 } from "lucide-react"
 import MatrixBackground from "@/components/matrix-background"
 import { Button } from "@/components/ui/button"
@@ -90,9 +92,67 @@ const motelsByRegion: { [key: string]: { name: string; city: string; state: stri
   "99": { name: "Motel Imperatriz", city: "Imperatriz", state: "MA", lat: -5.5242, lng: -47.4821 },
 }
 
+// Função para calcular a distância entre dois pontos (Haversine formula simplificada)
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371 // Raio da Terra em quilômetros
+  const dLat = (lat2 - lat1) * (Math.PI / 180)
+  const dLon = (lon2 - lon1) * (Math.PI / 180)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  const distance = R * c // Distância em km
+  return distance
+}
+
+// Função para gerar endereço mais realista baseado na localização específica do motel
+function generateAddress(motel: { name: string; city: string; state: string; lat: number; lng: number }): string {
+  // Endereços específicos baseados nas coordenadas reais dos motéis
+  const specificAddresses: { [key: string]: string } = {
+    "Ouro | Motel Rio de Janeiro": "R. Aristides Gouveia, 526 - Sepetiba, Rio de Janeiro - RJ, 23535-031",
+    "Motel Luxor": "Av. Paulista, 1578 - Bela Vista, São Paulo - SP, 01310-200",
+    "Motel BH Palace": "Av. Afonso Pena, 867 - Centro, Belo Horizonte - MG, 30130-002",
+    "Motel Curitiba": "R. XV de Novembro, 123 - Centro, Curitiba - PR, 80020-310",
+    "Motel Porto Alegre": "Av. Borges de Medeiros, 456 - Centro, Porto Alegre - RS, 90020-025",
+    "Motel Fortaleza": "Av. Beira Mar, 789 - Meireles, Fortaleza - CE, 60165-121",
+    "Motel Salvador": "R. Chile, 321 - Centro, Salvador - BA, 40070-110",
+    "Motel Recife": "Av. Boa Viagem, 654 - Boa Viagem, Recife - PE, 51021-000",
+    "Motel Brasília": "Esplanada dos Ministérios - Brasília, DF, 70040-010",
+    "Motel Manaus": "Av. Eduardo Ribeiro, 987 - Centro, Manaus - AM, 69010-001",
+  }
+
+  // Se existe endereço específico, usar ele, senão gerar um genérico
+  if (specificAddresses[motel.name]) {
+    return specificAddresses[motel.name]
+  }
+
+  // Fallback para endereço genérico
+  const streets = ["R. das Flores", "Av. Principal", "R. Central", "Av. Beira Mar", "R. do Comércio"]
+  const randomStreet = streets[Math.floor(Math.random() * streets.length)]
+  const randomNumber = Math.floor(Math.random() * 999) + 100
+  const neighborhoods = ["Centro", "Vila Nova", "Jardim América", "Bela Vista"]
+  const randomNeighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)]
+  const randomCEP = `${Math.floor(Math.random() * 90000) + 10000}-${Math.floor(Math.random() * 900) + 100}`
+
+  return `${randomStreet}, ${randomNumber} - ${randomNeighborhood}, ${motel.city} - ${motel.state}, ${randomCEP}`
+}
+
+// Função para gerar avaliação consistente baseada no nome do motel
+function generateRating(motelName: string): { rating: number; reviews: number } {
+  // Usar o nome do motel como seed para gerar valores consistentes
+  const seed = motelName.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const rating = Number.parseFloat((3.5 + (seed % 15) / 10).toFixed(1)) // Entre 3.5 e 5.0
+  const reviews = 800 + (seed % 1500) // Entre 800 e 2300
+  return { rating, reviews }
+}
+
+function buildGoogleMapsEmbedUrl(lat: number, lon: number, placeName: string): string {
+  const encodedPlaceName = encodeURIComponent(placeName)
+  return `https://www.google.com/maps/embed/v1/view?key=AIzaSyAW616dsHMKfzenwtYWtTAd99ekhk41Prw&center=${lat},${lon}&zoom=16&maptype=roadmap`
+}
+
 export default function ResultsPage() {
   const [timeRemaining, setTimeRemaining] = useState(300) // 5 minutos em segundos
-  const [userLocation, setUserLocation] = useState<string>("Carregando localização...")
   const [nearestMotel, setNearestMotel] = useState<{
     name: string
     city: string
@@ -103,9 +163,8 @@ export default function ResultsPage() {
   const searchParams = useSearchParams()
   const phoneNumber = searchParams.get("phone") || "(XX) XXXXX-XXXX"
 
-  // Extrair DDD do número de telefone
-  const cleanPhoneNumber = phoneNumber.replace(/\D/g, "")
-  const ddd = cleanPhoneNumber.slice(0, 2)
+  // Obter uma lista de todos os motéis para seleção
+  const allMotels = Object.values(motelsByRegion)
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -121,70 +180,82 @@ export default function ResultsPage() {
     return () => clearInterval(timer)
   }, [])
 
-  // Capturar localização do usuário
+  // Função para extrair DDD do número de telefone
+  function extractDDD(phoneNumber: string): string {
+    const cleanPhone = phoneNumber.replace(/\D/g, "")
+    if (cleanPhone.length >= 2) {
+      return cleanPhone.substring(0, 2)
+    }
+    return ""
+  }
+
+  // Determinar o motel mais próximo com base na localização do usuário
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          try {
-            // Usar reverse geocoding para obter a cidade
-            const response = await fetch(
-              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${position.coords.latitude}&longitude=${position.coords.longitude}&localityLanguage=pt`,
-            )
-            const data = await response.json()
-            const city = data.city || data.locality || "Localização detectada"
-            const state = data.principalSubdivision || ""
+        (position) => {
+          const userLat = position.coords.latitude
+          const userLon = position.coords.longitude
 
-            setUserLocation(`${city}${state ? `, ${state}` : ""}`)
+          let closestMotel = null
+          let minDistance = Number.POSITIVE_INFINITY
 
-            // Determinar o motel mais próximo baseado no DDD ou localização
-            const motel = motelsByRegion[ddd] || {
-              name: "Motel Luxo Premium",
-              city: city,
-              state: state,
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
+          allMotels.forEach((motel) => {
+            const distance = calculateDistance(userLat, userLon, motel.lat, motel.lng)
+            if (distance < minDistance) {
+              minDistance = distance
+              closestMotel = motel
             }
-            setNearestMotel(motel)
-          } catch (error) {
-            // Fallback para DDD se a API falhar
-            const motel = motelsByRegion[ddd] || {
-              name: "Motel Luxo Premium",
-              city: "Sua região",
-              state: "",
-              lat: -23.5505,
-              lng: -46.6333,
-            }
-            setUserLocation("Localização detectada")
-            setNearestMotel(motel)
-          }
+          })
+
+          setNearestMotel(closestMotel)
         },
         (error) => {
-          // Fallback para DDD se geolocalização falhar
-          const motel = motelsByRegion[ddd] || {
-            name: "Motel Luxo Premium",
-            city: "Sua região",
-            state: "",
-            lat: -23.5505,
-            lng: -46.6333,
+          console.error("Erro ao obter localização:", error)
+          // Fallback: usar DDD do número de telefone
+          const ddd = extractDDD(phoneNumber)
+          if (ddd && motelsByRegion[ddd]) {
+            setNearestMotel(motelsByRegion[ddd])
+          } else {
+            // Se não encontrar DDD, usar um motel aleatório
+            if (allMotels.length > 0) {
+              const randomIndex = Math.floor(Math.random() * allMotels.length)
+              setNearestMotel(allMotels[randomIndex])
+            } else {
+              setNearestMotel({
+                name: "Motel Desconhecido",
+                city: "Cidade Desconhecida",
+                state: "Estado Desconhecida",
+                lat: -23.5505,
+                lng: -46.6333,
+              })
+            }
           }
-          setUserLocation("Localização detectada")
-          setNearestMotel(motel)
         },
       )
     } else {
-      // Fallback para DDD se geolocalização não estiver disponível
-      const motel = motelsByRegion[ddd] || {
-        name: "Motel Luxo Premium",
-        city: "Sua região",
-        state: "",
-        lat: -23.5505,
-        lng: -46.6333,
+      console.warn("Geolocalização não suportada pelo navegador.")
+      // Fallback: usar DDD do número de telefone
+      const ddd = extractDDD(phoneNumber)
+      if (ddd && motelsByRegion[ddd]) {
+        setNearestMotel(motelsByRegion[ddd])
+      } else {
+        // Se não encontrar DDD, usar um motel aleatório
+        if (allMotels.length > 0) {
+          const randomIndex = Math.floor(Math.random() * allMotels.length)
+          setNearestMotel(allMotels[randomIndex])
+        } else {
+          setNearestMotel({
+            name: "Motel Desconhecido",
+            city: "Cidade Desconhecida",
+            state: "Estado Desconhecida",
+            lat: -23.5505,
+            lng: -46.6333,
+          })
+        }
       }
-      setUserLocation("Localização detectada")
-      setNearestMotel(motel)
     }
-  }, [ddd])
+  }, [allMotels, phoneNumber]) // Adicionado phoneNumber como dependência
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)
@@ -235,7 +306,7 @@ export default function ResultsPage() {
                   />
                 </div>
                 <div className="relative w-full h-48 bg-gray-800 rounded-lg flex flex-col items-center justify-center border border-hacking-primary/50 overflow-hidden">
-                  <Lock className="w-10 h-10 sm:w-12 sm:h-12 text-gray-500 mb-2" />
+                  <Lock className="w-10 h-10 sm:w-12 sm:w-12 text-gray-500 mb-2" />
                   <p className="text-gray-400 text-lg">Trecho de Conversa #2</p>
                   <Image
                     src="/images/ZAP-fake.webp"
@@ -308,7 +379,7 @@ export default function ResultsPage() {
                   <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" />
                   <div>
                     <p className="text-gray-400 text-sm">Local de Acesso Suspeito</p>
-                    <p className="text-white font-semibold">Login fora da cidade</p>
+                    <p className="text-white font-semibold">{nearestMotel?.name || "Localização não identificada"}</p>
                   </div>
                 </div>
               </div>
@@ -325,8 +396,7 @@ export default function ResultsPage() {
           </div>
         </div>
 
-        {/* Matches and Interac
-tions Section */}
+        {/* Matches and Interactions Section */}
         <div className="relative w-full p-8 rounded-xl bg-hacking-card-bg overflow-hidden border border-transparent animate-glow-pulse">
           <div className="absolute inset-[-3px] rounded-xl bg-gradient-neon-border animate-pulse-border z-[-1]"></div>
           <div className="relative z-10">
@@ -475,25 +545,91 @@ tions Section */}
             </div>
 
             <p className="text-whatsapp-text-light mb-6">
-              O número <span className="font-bold text-hacking-primary">{phoneNumber}</span> esteve neste motel nos
-              últimos <span className="text-red-400 font-bold">7 dias</span>. Abaixo está a localização mais recente
-              registrada.
+              O número <span className="font-bold text-hacking-primary">{phoneNumber}</span> esteve neste motel{" "}
+              <span className="font-bold text-hacking-primary">
+                {nearestMotel?.name || "Localização não identificada"}
+              </span>{" "}
+              nos últimos <span className="text-red-400 font-bold">7 dias</span>. Este é o motel mais próximo da sua
+              localização atual. Abaixo está a localização exata registrada.
             </p>
 
             <div className="relative mb-6 rounded-lg overflow-hidden bg-gray-800 border border-hacking-primary/30">
               {nearestMotel && (
-                <iframe
-                  src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyAW616dsHMKfzenwtYWtTAd99ekhk41Prw&q=${encodeURIComponent(
-                    `${nearestMotel.name} ${nearestMotel.city} ${nearestMotel.state}`,
-                  )}&center=${nearestMotel.lat},${nearestMotel.lng}&zoom=15&maptype=roadmap`}
-                  width="100%"
-                  height="400"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  className="w-full h-96 rounded-lg"
-                />
+                <div className="relative">
+                  <iframe
+                    key={`${nearestMotel.lat}-${nearestMotel.lng}`}
+                    src={buildGoogleMapsEmbedUrl(
+                      nearestMotel.lat,
+                      nearestMotel.lng,
+                      `${nearestMotel.name}, ${nearestMotel.city}, ${nearestMotel.state}`,
+                    )}
+                    width="100%"
+                    height="400"
+                    style={{ border: 0, pointerEvents: "none" }}
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    className="w-full h-96 rounded-lg"
+                    allowFullScreen={false}
+                  />
+
+                  {/* Overlay com blur que cobre todo o mapa */}
+                  <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-5"></div>
+
+                  {/* Google Maps Info Window - Posicionada nas coordenadas exatas do motel */}
+                  <div className="absolute top-4 left-4 z-20 bg-white rounded-lg shadow-lg border border-gray-200 max-w-xs">
+                    <div className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-bold text-gray-900 text-sm leading-tight pr-2">{nearestMotel.name}</h4>
+                        <button className="text-blue-600 text-xs font-medium hover:underline flex items-center gap-1">
+                          <Navigation className="w-3 h-3" />
+                          Rotas
+                        </button>
+                      </div>
+
+                      <p className="text-xs text-gray-600 mb-3 leading-relaxed">{generateAddress(nearestMotel)}</p>
+
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="flex items-center">
+                          <span className="text-sm font-semibold text-gray-900">
+                            {generateRating(nearestMotel.name).rating}
+                          </span>
+                          <div className="flex ml-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-3 h-3 ${
+                                  i < Math.floor(generateRating(nearestMotel.name).rating)
+                                    ? "text-yellow-400 fill-current"
+                                    : "text-gray-300"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <span className="text-xs text-blue-600">
+                          {generateRating(nearestMotel.name).reviews.toLocaleString()} avaliações
+                        </span>
+                      </div>
+
+                      <button className="text-blue-600 text-xs hover:underline">Ver mapa ampliado</button>
+                    </div>
+                  </div>
+
+                  {/* Marcador posicionado exatamente nas coordenadas do motel mais próximo */}
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-15">
+                    <div className="relative">
+                      {/* Pin do marcador */}
+                      <div className="w-8 h-8 bg-red-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-pulse">
+                        <MapPin className="w-4 h-4 text-white" />
+                      </div>
+                      {/* Sombra do marcador */}
+                      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-4 h-2 bg-black/30 rounded-full blur-sm"></div>
+                    </div>
+                  </div>
+
+                  {/* Sobreposição para bloquear interação */}
+                  <div className="absolute inset-0 bg-transparent cursor-not-allowed z-25" />
+                </div>
               )}
               {!nearestMotel && (
                 <div className="w-full h-96 bg-gradient-to-br from-blue-200 to-blue-300 flex items-center justify-center rounded-lg">
@@ -508,6 +644,11 @@ tions Section */}
                 </div>
               )}
             </div>
+
+            <p className="text-center text-gray-300 text-sm mt-4">
+              <Lock className="inline-block w-4 h-4 mr-1" /> Desbloqueie o relatório completo para saber onde ele já
+              visitou, onde ele frequenta sempre e onde ele está atualmente!
+            </p>
           </div>
         </div>
 
@@ -556,7 +697,7 @@ tions Section */}
                     "0 0 3px #25D366, 0 0 6px #25D366, 0 0 9px #25D366, 0 0 12px #25D366, 0 0 18px #25D366, 0 0 22px #25D366",
                 }}
               >
-                RELATÓRIO COMPLETO POR R$19,90
+                DESBLOQUEIE TUDO POR R$19,90
               </Button>
               <p className="text-gray-400 text-sm text-center">
                 Pagamento 100% seguro. Relatório completo válido por {formatTime(timeRemaining)} minutos

@@ -193,7 +193,6 @@ export default function WhatsEspiaoPage() {
     const formattedDate = today.toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
-      year: "numeric",
     })
     setCurrentDate(formattedDate)
   }, [])
@@ -327,20 +326,29 @@ export default function WhatsEspiaoPage() {
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
-            window.pixelId = "6859c44c8c3a8e69c4f45491";
-            var a = document.createElement("script");
-            a.setAttribute("async", "");
-            a.setAttribute("defer", "");
-            a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
-            document.head.appendChild(a);
-          `,
+        window.pixelId = "6859c44c8c3a8e69c4f45491";
+        var a = document.createElement("script");
+        a.setAttribute("async", "");
+        a.setAttribute("defer", "");
+        a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+        document.head.appendChild(a);
+      `,
         }}
       />
 
       {/* Novo fundo animado do WhatsApp */}
       <WhatsAppBackground />
 
-      <div className="relative z-10 flex flex-col items-center w-full">
+      {/* Barra de aviso de consulta gratuita */}
+      <div className="fixed top-0 left-0 w-full text-white text-center py-2 z-50 shadow-lg bg-[rgba(255,0,0,1)]">
+        <p className="text-base sm:text-lg md:text-xl font-bold px-4 animate-text-pulse-subtle">
+          Você possui apenas 1 consulta totalmente gratuita válida somente até dia {currentDate}.
+        </p>
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center w-full mt-12">
+        {" "}
+        {/* Added mt-12 to push content down */}
         {/* Header Section */}
         <header
           className={`flex flex-col items-center text-center mb-12 transition-all duration-1000 ease-out ${
@@ -432,7 +440,6 @@ export default function WhatsEspiaoPage() {
             <span className="text-xs text-emerald-500">(+50.000 investigações de sucesso)</span>
           </p>
         </header>
-
         {/* Call to Action Button */}
         <Button
           onClick={scrollToInvestigation}
@@ -449,7 +456,6 @@ export default function WhatsEspiaoPage() {
           <Heart className="w-6 h-6 mr-2 text-white" />
           <span className="text-white">Descubra a Verdade</span>
         </Button>
-
         {/* Texto de Escassez */}
         <p
           className={`text-sm font-semibold mb-16 text-center animate-title-glow text-white transition-all duration-1000 ease-out delay-1000 ${
@@ -458,7 +464,6 @@ export default function WhatsEspiaoPage() {
         >
           Investigação válida até {currentDate}
         </p>
-
         {/* Feature Cards Section */}
         <section
           className={`grid md:grid-cols-3 gap-8 w-full max-w-5xl mb-16 transition-all duration-1200 ease-out delay-1100 ${
@@ -525,7 +530,6 @@ export default function WhatsEspiaoPage() {
             </div>
           </div>
         </section>
-
         {/* What You'll Discover Section */}
         <section
           className={`w-full max-w-4xl mb-16 transition-all duration-1200 ease-out delay-1200 ${
@@ -589,7 +593,6 @@ export default function WhatsEspiaoPage() {
             </div>
           </div>
         </section>
-
         {/* Testimonials Carousel Section */}
         <section
           className={`w-full max-w-4xl mb-16 transition-all duration-1200 ease-out delay-1300 ${
@@ -754,7 +757,6 @@ export default function WhatsEspiaoPage() {
             </div>
           </div>
         </section>
-
         {/* Investigation Form Section */}
         <section
           id="investigation-form"
@@ -777,11 +779,11 @@ export default function WhatsEspiaoPage() {
               }`}
             >
               <h3 className="font-bold bg-clip-text bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark text-center text-4xl animate-pulse text-[rgba(21,255,0,1)]">
-                ACABE COM A ANGÚSTIA
+                INVESTIGUE ELE(A) AGORA!
               </h3>
             </div>
             <p
-              className={`text-center text-whatsapp-text-light mb-8 transition-all duration-800 ease-out delay-1800 ${
+              className={`text-center text-whatsapp-text-light mb-8 max-w-2xl mx-auto transition-all duration-800 ease-out delay-1800 ${
                 isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
               }`}
             >
@@ -902,7 +904,7 @@ export default function WhatsEspiaoPage() {
               }`}
             >
               <AlertTriangle className="w-4 h-4 animate-icon-neon-pulse" />
-              Apenas <span className="font-bold">{remainingVerifications}</span> verificações gratuitas restantes hoje.
+              Apenas <span className="font-bold">{remainingVerifications}</span> verificações restantes hoje.
             </div>
 
             <Button

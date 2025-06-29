@@ -16,81 +16,6 @@ interface InvestigationStep {
   duration: number // Duration of this step in milliseconds
 }
 
-// Função para mapear DDD para localidade
-function getLocationByDDD(ddd: string): string {
-  const locationMap: { [key: string]: string } = {
-    "11": "São Paulo - SP",
-    "12": "São José dos Campos - SP",
-    "13": "Santos - SP",
-    "14": "Bauru - SP",
-    "15": "Sorocaba - SP",
-    "16": "Ribeirão Preto - SP",
-    "17": "São José do Rio Preto - SP",
-    "18": "Presidente Prudente - SP",
-    "19": "Campinas - SP",
-    "21": "Rio de Janeiro - RJ",
-    "22": "Campos dos Goytacazes - RJ",
-    "24": "Volta Redonda - RJ",
-    "27": "Vitória - ES",
-    "28": "Cachoeiro de Itapemirim - ES",
-    "31": "Belo Horizonte - MG",
-    "32": "Juiz de Fora - MG",
-    "33": "Governador Valadares - MG",
-    "34": "Uberlândia - MG",
-    "35": "Poços de Caldas - MG",
-    "37": "Divinópolis - MG",
-    "38": "Montes Claros - MG",
-    "41": "Curitiba - PR",
-    "42": "Ponta Grossa - PR",
-    "43": "Londrina - PR",
-    "44": "Maringá - PR",
-    "45": "Foz do Iguaçu - PR",
-    "46": "Francisco Beltrão - PR",
-    "47": "Joinville - SC",
-    "48": "Florianópolis - SC",
-    "49": "Chapecó - SC",
-    "51": "Porto Alegre - RS",
-    "53": "Pelotas - RS",
-    "54": "Caxias do Sul - RS",
-    "55": "Santa Maria - RS",
-    "61": "Brasília - DF",
-    "62": "Goiânia - GO",
-    "63": "Palmas - TO",
-    "64": "Rio Verde - GO",
-    "65": "Cuiabá - MT",
-    "66": "Rondonópolis - MT",
-    "67": "Campo Grande - MS",
-    "68": "Rio Branco - AC",
-    "69": "Porto Velho - RO",
-    "71": "Salvador - BA",
-    "73": "Ilhéus - BA",
-    "74": "Juazeiro - BA",
-    "75": "Feira de Santana - BA",
-    "77": "Barreiras - BA",
-    "79": "Aracaju - SE",
-    "81": "Recife - PE",
-    "82": "Maceió - AL",
-    "83": "João Pessoa - PB",
-    "84": "Natal - RN",
-    "85": "Fortaleza - CE",
-    "86": "Teresina - PI",
-    "87": "Petrolina - PE",
-    "88": "Juazeiro do Norte - CE",
-    "89": "Picos - PI",
-    "91": "Belém - PA",
-    "92": "Manaus - AM",
-    "93": "Santarém - PA",
-    "94": "Marabá - PA",
-    "95": "Boa Vista - RR",
-    "96": "Macapá - AP",
-    "97": "Coari - AM",
-    "98": "São Luís - MA",
-    "99": "Imperatriz - MA",
-  }
-
-  return locationMap[ddd] || "Localização não identificada"
-}
-
 export default function InvestigatingPage() {
   const searchParams = useSearchParams()
   const phoneNumber = searchParams.get("phone") || "(XX) XXXXX-XXXX" // Get phone number from URL
@@ -102,11 +27,6 @@ export default function InvestigatingPage() {
   const [showCompletionMessage, setShowCompletionMessage] = useState(false) // Estado para mostrar mensagem de conclusão
   const animationFrameRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null) // Ref para o tempo de início da animação da simulação
-
-  // Extrair DDD e determinar localidade
-  const cleanPhoneNumber = phoneNumber.replace(/\D/g, "")
-  const ddd = cleanPhoneNumber.slice(0, 2)
-  const location = getLocationByDDD(ddd)
 
   const stepsRef = useRef<InvestigationStep[]>([
     {
@@ -256,8 +176,8 @@ export default function InvestigatingPage() {
             Analisando: <span className="text-hacking-primary">{phoneNumber}</span>
           </p>
           <div className="flex items-center justify-center gap-2 text-sm">
-            <span className="text-gray-400">Localidade:</span>
-            <span className="text-hacking-primary font-medium">{location}</span>
+            <span className="text-gray-400">Status do dispositivo:</span>
+            <span className="text-hacking-primary font-medium">Ativo</span>
           </div>
         </div>
 
@@ -273,13 +193,13 @@ export default function InvestigatingPage() {
             <div
               key={step.id}
               className={`relative p-4 rounded-lg transition-all duration-500 ease-in-out
-                ${
-                  index === currentStepIndex
-                    ? "bg-hacking-card-bg border border-hacking-primary/80 shadow-lg animate-pulse-border" // Active step
-                    : index < currentStepIndex
-                      ? "bg-hacking-card-bg border border-hacking-primary/80" // Completed step (mais acesso)
-                      : "bg-hacking-card-bg border border-hacking-primary/10 opacity-40" // Pending step
-                }`}
+              ${
+                index === currentStepIndex
+                  ? "bg-hacking-card-bg border border-hacking-primary/80 shadow-lg animate-pulse-border" // Active step
+                  : index < currentStepIndex
+                    ? "bg-hacking-card-bg border border-hacking-primary/80" // Completed step (mais acesso)
+                    : "bg-hacking-card-bg border border-hacking-primary/10 opacity-40" // Pending step
+              }`}
             >
               <div className="flex items-center gap-3">
                 <div
