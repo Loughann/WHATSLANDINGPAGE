@@ -450,7 +450,7 @@ export default function ResultsPage() {
                     "0 0 3px #25D366, 0 0 6px #25D366, 0 0 9px #25D366, 0 0 12px #25D366, 0 0 18px #25D366, 0 0 22px #25D366",
                 }}
               >
-                TODAS CONVERSAS E FOTOS POR R$19,90 🔥
+                TODAS CONVERSAS E FOTOS POR R$14,90 🔥
               </Button>
             </div>
           </div>
@@ -668,7 +668,7 @@ export default function ResultsPage() {
               O que você vai descobrir ao desbloquear o relatório Completo?
             </h3>
             <p className="text-center text-whatsapp-text-light mb-8 max-w-2xl mx-auto">
-              Por um pagamento único de <span className="font-bold text-[rgba(0,255,0,1)]">R$19,90</span>, você terá
+              Por um pagamento único de <span className="font-bold text-[rgba(0,255,0,1)]">R$14,90</span>, você terá
               acesso total e irrestrito a um relatório completo com todas as conversas e mídias. Chega de dúvidas.
             </p>
 
@@ -705,7 +705,7 @@ export default function ResultsPage() {
                     "0 0 3px #25D366, 0 0 6px #25D366, 0 0 9px #25D366, 0 0 12px #25D366, 0 0 18px #25D366, 0 0 22px #25D366",
                 }}
               >
-                DESBLOQUEIE TUDO POR R$19,90
+                DESBLOQUEIE TUDO POR R$14,90
               </Button>
               <p className="text-gray-400 text-sm text-center">
                 Pagamento 100% seguro. Relatório completo válido por {formatTime(timeRemaining)} minutos
