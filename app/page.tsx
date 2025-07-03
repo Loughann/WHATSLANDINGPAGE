@@ -631,7 +631,7 @@ export default function WhatsEspiaoPage() {
             >
               <Flame className="w-4 h-4 text-red-500 animate-subtle-glow" />
               <span className="font-semibold">
-                @{currentMessage.username} viu as conversas que tentaram esconder {pronoun}.
+                @{currentMessage.username} viu as conversas que tentaram esconder. {pronoun}.
               </span>
             </div>
 
