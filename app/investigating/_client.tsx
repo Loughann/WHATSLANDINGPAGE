@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useRef, type DOMHighResTimeStamp } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Globe, BarChart, MessageCircle, Trash2, History, Clock, FileText, Volume2, Play } from "lucide-react"
 import WhatsAppBackground from "@/components/whatsapp-background"
 import { useSearchParams, useRouter } from "next/navigation"
@@ -15,9 +15,6 @@ interface InvestigationStep {
 }
 
 export default function InvestigatingClient() {
-  /* ------------------------------------------------------------------ */
-  /* basic state                                                        */
-  /* ------------------------------------------------------------------ */
   const searchParams = useSearchParams()
   const router = useRouter()
 
@@ -31,9 +28,6 @@ export default function InvestigatingClient() {
   const [showRedirectMessage, setShowRedirectMessage] = useState(false)
   const [showPlayButton, setShowPlayButton] = useState(true)
 
-  /* ------------------------------------------------------------------ */
-  /* refs                                                               */
-  /* ------------------------------------------------------------------ */
   const animationFrameRef = useRef<number | null>(null)
   const startTimeRef = useRef<number | null>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -47,25 +41,20 @@ export default function InvestigatingClient() {
     { id: 5, text: "Compilando relatório completo da investigação...", icon: FileText, delay: 1000, duration: 15000 },
   ])
 
-  const totalSimulationDuration = 90_000 // 90 s
+  const totalSimulationDuration = 90_000
 
-  /* ------------------------------------------------------------------ */
-  /* simulation loop (client only)                                      */
-  /* ------------------------------------------------------------------ */
   useEffect(() => {
-    /* cancel any previous loop */
     if (!simulating) {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
       return
     }
 
-    const animateProgress = (now: DOMHighResTimeStamp) => {
+    const animateProgress = (now: number) => {
       if (startTimeRef.current === null) startTimeRef.current = now
       const elapsed = now - startTimeRef.current
       const pct = Math.min((elapsed / totalSimulationDuration) * 100, 100)
       setProgress(pct)
 
-      /* which step are we in? */
       let acc = 0
       for (let i = 0; i < stepsRef.current.length; i++) {
         const s = stepsRef.current[i]
@@ -78,7 +67,6 @@ export default function InvestigatingClient() {
         acc += s.delay + s.duration
       }
 
-      /* finished? */
       if (elapsed >= totalSimulationDuration) {
         setCurrentStepIndex(stepsRef.current.length - 1)
         setProgress(100)
@@ -93,18 +81,15 @@ export default function InvestigatingClient() {
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current)
     }
-  }, [simulating])
+  }, [simulating, totalSimulationDuration])
 
-  /* ------------------------------------------------------------------ */
-  /* handlers                                                           */
-  /* ------------------------------------------------------------------ */
   const handlePlayClick = () => {
     setShowPlayButton(false)
     if (iframeRef.current?.contentWindow) {
       try {
         iframeRef.current.contentWindow.postMessage('{"method":"play"}', "*")
-      } catch {
-        /* noop */
+      } catch (error) {
+        console.log("Error playing video:", error)
       }
     }
   }
@@ -116,16 +101,11 @@ export default function InvestigatingClient() {
     }, 2000)
   }
 
-  /* ------------------------------------------------------------------ */
-  /* render                                                             */
-  /* ------------------------------------------------------------------ */
   return (
     <div className="min-h-screen flex flex-col py-4 px-2 relative overflow-hidden">
       <WhatsAppBackground />
 
-      {/* MAIN WRAPPER */}
       <div className="relative z-10 flex flex-col w-full">
-        {/* notice */}
         <div className="w-full max-w-sm mx-auto mb-4">
           <p className="text-sm text-whatsapp-text-light mb-3 text-center">
             Essa análise pode durar até{" "}
@@ -145,7 +125,6 @@ export default function InvestigatingClient() {
           </div>
         </div>
 
-        {/* video ------------------------------------------------------- */}
         <div className="relative bg-gray-900 rounded-lg overflow-hidden border border-hacking-primary/30 w-full mb-6 mx-auto max-w-sm">
           <div className="w-full h-48 relative">
             <iframe
@@ -176,9 +155,7 @@ export default function InvestigatingClient() {
           </div>
         </div>
 
-        {/* info card --------------------------------------------------- */}
         <div className="flex flex-col items-center w-full max-w-sm mx-auto">
-          {/* phone */}
           <div className="w-full p-3 rounded-lg bg-hacking-card-bg border border-hacking-primary/50 mb-4 text-center animate-led-glow-pulse">
             <p className="text-base font-semibold text-whatsapp-text-light mb-2">
               Analisando: <span className="text-hacking-primary text-sm">{phoneNumber}</span>
@@ -189,13 +166,11 @@ export default function InvestigatingClient() {
             </div>
           </div>
 
-          {/* progress */}
           <p className="text-lg font-bold text-whatsapp-text-light mb-6 flex items-center gap-2">
             <BarChart className="w-5 h-5 text-hacking-primary" />
             {Math.round(progress)}% CONCLUÍDO
           </p>
 
-          {/* discover button */}
           {showCompletionButton && (
             <div className="w-full mb-6">
               <button
@@ -213,7 +188,6 @@ export default function InvestigatingClient() {
             </div>
           )}
 
-          {/* steps list ------------------------------------------------ */}
           <div className="w-full space-y-3">
             {stepsRef.current.map((step, idx) => (
               <div
@@ -249,7 +223,6 @@ export default function InvestigatingClient() {
         </div>
       </div>
 
-      {/* redirect overlay --------------------------------------------- */}
       {showRedirectMessage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
           <div className="text-center w-full max-w-xs">
