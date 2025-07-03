@@ -2,33 +2,35 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
 import { Globe, BarChart, MessageCircle, Trash2, History, Clock, FileText, Volume2, Play } from "lucide-react"
 import WhatsAppBackground from "@/components/whatsapp-background"
-import { useRouter } from "next/navigation" // Importar useRouter
+import { useRouter } from "next/navigation"
 
 interface InvestigationStep {
   id: number
   text: string
   icon: React.ElementType
-  delay: number // Delay in milliseconds before this step starts
-  duration: number // Duration of this step in milliseconds
+  delay: number
+  duration: number
 }
 
-export default function InvestigatingPage() {
+function InvestigatingContent() {
   const searchParams = useSearchParams()
-  const phoneNumber = searchParams.get("phone") || "(XX) XXXXX-XXXX" // Get phone number from URL
-  const router = useRouter() // Inicializar useRouter
+  const router = useRouter()
 
+  const [phoneNumber, setPhoneNumber] = useState("(XX) XXXXX-XXXX")
   const [currentStepIndex, setCurrentStepIndex] = useState(-1)
-  const [progress, setProgress] = useState(0) // Reintroduzindo o estado de progresso
-  const [simulating, setSimulating] = useState(true) // Reintroduzindo o estado de simulação
-  const [showCompletionButton, setShowCompletionButton] = useState(false) // Estado para mostrar botão de conclusão
-  const [showRedirectMessage, setShowRedirectMessage] = useState(false) // Estado para mostrar mensagem de redirecionamento
-  const [showPlayButton, setShowPlayButton] = useState(true) // Estado para controlar a visibilidade do botão play
+  const [progress, setProgress] = useState(0)
+  const [simulating, setSimulating] = useState(true)
+  const [showCompletionButton, setShowCompletionButton] = useState(false)
+  const [showRedirectMessage, setShowRedirectMessage] = useState(false)
+  const [showPlayButton, setShowPlayButton] = useState(true)
+  const [isClient, setIsClient] = useState(false)
+
   const animationFrameRef = useRef<number | null>(null)
-  const startTimeRef = useRef<number | null>(null) // Ref para o tempo de início da animação da simulação
+  const startTimeRef = useRef<number | null>(null)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   const stepsRef = useRef<InvestigationStep[]>([
@@ -76,22 +78,34 @@ export default function InvestigatingPage() {
     },
   ])
 
-  // Calcula a duração total da simulação somando os delays e durations de cada passo
-  // Total: 6000ms (delays) + 73000ms (durations) = 79000ms
-  // Ajustando para 90000ms (90 segundos)
   const totalSimulationDuration = 90000 // 90 segundos
+
+  // Inicialização do cliente
+  useEffect(() => {
+    setIsClient(true)
+    const phone = searchParams.get("phone") || "(XX) XXXXX-XXXX"
+    setPhoneNumber(phone)
+  }, [searchParams])
 
   // Função para lidar com o clique no botão play
   const handlePlayClick = () => {
+    if (typeof window === "undefined") return
+
     setShowPlayButton(false)
     // Tentar iniciar o vídeo via postMessage para o iframe do Vimeo
-    if (iframeRef.current) {
-      iframeRef.current.contentWindow?.postMessage('{"method":"play"}', "*")
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      try {
+        iframeRef.current.contentWindow.postMessage('{"method":"play"}', "*")
+      } catch (error) {
+        console.log("Erro ao tentar iniciar o vídeo:", error)
+      }
     }
   }
 
   // Função para lidar com o clique no botão de descobrir a verdade
   const handleDiscoverTruth = () => {
+    if (typeof window === "undefined") return
+
     setShowRedirectMessage(true)
     // Aguarda 2 segundos e depois redireciona
     setTimeout(() => {
@@ -100,6 +114,9 @@ export default function InvestigatingPage() {
   }
 
   useEffect(() => {
+    // Só executa no cliente
+    if (!isClient || typeof window === "undefined") return
+
     // Se a simulação não deve estar ativa, garante que qualquer animação ativa seja cancelada
     if (!simulating) {
       if (animationFrameRef.current) {
@@ -124,7 +141,6 @@ export default function InvestigatingPage() {
 
       // Determina o passo de investigação atual com base no tempo decorrido
       let cumulativeTime = 0
-      let foundCurrentStep = false
       for (let i = 0; i < stepsRef.current.length; i++) {
         const step = stepsRef.current[i]
         const stepStart = cumulativeTime + step.delay
@@ -132,7 +148,6 @@ export default function InvestigatingPage() {
 
         if (elapsedTime >= stepStart && elapsedTime < stepEnd) {
           setCurrentStepIndex(i)
-          foundCurrentStep = true
           break
         }
         cumulativeTime += step.delay + step.duration
@@ -144,28 +159,41 @@ export default function InvestigatingPage() {
         setProgress(100) // Define o progresso para 100%
         setSimulating(false) // Para a simulação
         setShowCompletionButton(true) // Mostra o botão de conclusão
-
-        // Não redireciona automaticamente mais
-
-        // Não é necessário cancelar requestAnimationFrame aqui, o retorno já impede a próxima requisição
       } else {
         // Continua a animação agendando o próximo frame
-        animationFrameRef.current = requestAnimationFrame(animateProgress)
+        if (typeof window !== "undefined") {
+          animationFrameRef.current = requestAnimationFrame(animateProgress)
+        }
       }
     }
 
     // Inicia o loop de animação
-    animationFrameRef.current = requestAnimationFrame(animateProgress)
+    if (typeof window !== "undefined") {
+      animationFrameRef.current = requestAnimationFrame(animateProgress)
+    }
 
     // Função de limpeza: cancela o requestAnimationFrame quando o componente é desmontado
-    // ou quando as dependências do useEffect mudam e o efeito é re-executado
     return () => {
-      if (animationFrameRef.current) {
+      if (animationFrameRef.current && typeof window !== "undefined") {
         cancelAnimationFrame(animationFrameRef.current)
-        animationFrameRef.current = null // Limpa a referência
+        animationFrameRef.current = null
       }
     }
-  }, [simulating, totalSimulationDuration, phoneNumber, router]) // Dependências: o efeito só roda quando 'simulating' ou 'totalSimulationDuration' mudam
+  }, [simulating, totalSimulationDuration, phoneNumber, router, isClient])
+
+  // Renderização condicional para evitar hidration mismatch
+  if (!isClient) {
+    return (
+      <div className="min-h-screen flex flex-col py-4 px-2 relative overflow-hidden">
+        <WhatsAppBackground />
+        <div className="relative z-10 flex flex-col w-full">
+          <div className="w-full max-w-sm mx-auto mb-4">
+            <p className="text-sm text-whatsapp-text-light mb-3 text-center">Carregando análise...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen flex flex-col py-4 px-2 relative overflow-hidden">
@@ -205,7 +233,7 @@ export default function InvestigatingPage() {
               allow="autoplay; fullscreen; picture-in-picture; clipboard-write"
               title="WhatsApp Investigation VSL"
               className="w-full h-full object-cover"
-            ></iframe>
+            />
 
             {/* Botão Play Customizado */}
             {showPlayButton && (
@@ -321,5 +349,24 @@ export default function InvestigatingPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function InvestigatingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex flex-col py-4 px-2 relative overflow-hidden">
+          <WhatsAppBackground />
+          <div className="relative z-10 flex flex-col w-full">
+            <div className="w-full max-w-sm mx-auto mb-4">
+              <p className="text-sm text-whatsapp-text-light mb-3 text-center">Carregando análise...</p>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <InvestigatingContent />
+    </Suspense>
   )
 }
