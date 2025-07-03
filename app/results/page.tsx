@@ -10,11 +10,10 @@ import {
   MessageCircle,
   Calendar,
   MapPin,
-  Heart,
   PhoneCall,
-  ShieldCheck,
   Star,
   Navigation,
+  Play,
 } from "lucide-react"
 import MatrixBackground from "@/components/matrix-background"
 import { Button } from "@/components/ui/button"
@@ -450,7 +449,7 @@ export default function ResultsPage() {
                     "0 0 3px #25D366, 0 0 6px #25D366, 0 0 9px #25D366, 0 0 12px #25D366, 0 0 18px #25D366, 0 0 22px #25D366",
                 }}
               >
-                TODAS CONVERSAS E FOTOS POR R$14,90 🔥
+                ACESSO COMPLETO POR R$14,90
               </Button>
             </div>
           </div>
@@ -660,60 +659,6 @@ export default function ResultsPage() {
           </div>
         </div>
 
-        {/* Unlock Section */}
-        <div className="relative w-full p-8 rounded-xl bg-hacking-card-bg overflow-hidden border border-transparent animate-glow-pulse">
-          <div className="absolute inset-[-3px] rounded-xl bg-gradient-neon-border animate-pulse-border z-[-1]"></div>
-          <div className="relative z-10">
-            <h3 className="text-3xl font-bold text-center text-hacking-primary mb-8">
-              O que você vai descobrir ao desbloquear o relatório Completo?
-            </h3>
-            <p className="text-center text-whatsapp-text-light mb-8 max-w-2xl mx-auto">
-              Por um pagamento único de <span className="font-bold text-[rgba(0,255,0,1)]">R$14,90</span>, você terá
-              acesso total e irrestrito a um relatório completo com todas as conversas e mídias. Chega de dúvidas.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12">
-              {[
-                "+30 Fotos e vídeos +18 nas conversas",
-                "Conteúdo completo das mensagens (arquivadas, apagadas, antigas e atuais)",
-                "Lista de contatos com número e interações recentes",
-                "Todo conteúdo de conversas suspeitas",
-                "Padrões de atividades e horários de conversa",
-                "Localizações antigas e atuais e acesso às conversas",
-              ].map((feature, i) => (
-                <div key={i} className="flex items-center gap-3 text-whatsapp-text-light">
-                  <ShieldCheck
-                    className={`text-hacking-primary ${i === 1 ? "w-10 h-10 sm:w-12 sm:h-12" : "w-6 h-6 sm:w-8 sm:h-8"}`}
-                  />
-                  <p>{feature}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-col items-center gap-4">
-              <p className="font-bold text-center text-hacking-primary flex items-center justify-center gap-2 text-lg md:text-xl whitespace-nowrap">
-                <Eye className="w-5 h-5 sm:w-6 sm:h-6" /> A verdade está a um clique{" "}
-                <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-[rgba(0,255,0,1)]" />
-              </p>
-              <Button
-                onClick={() => window.open("https://whatscheckout.netlify.app/", "_blank")}
-                className="w-full py-6 rounded-xl text-lg md:text-xl font-bold shadow-xl hover:opacity-90 hover:shadow-2xl hover:scale-105 transition-all animate-led-pulse border-2 whitespace-nowrap px-4 text-neutral-900"
-                style={{
-                  background: "linear-gradient(45deg, #25D366, #14FE00)",
-                  borderColor: "#25D366",
-                  boxShadow:
-                    "0 0 3px #25D366, 0 0 6px #25D366, 0 0 9px #25D366, 0 0 12px #25D366, 0 0 18px #25D366, 0 0 22px #25D366",
-                }}
-              >
-                DESBLOQUEIE TUDO POR R$14,90
-              </Button>
-              <p className="text-gray-400 text-sm text-center">
-                Pagamento 100% seguro. Relatório completo válido por {formatTime(timeRemaining)} minutos
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Video Testimonial Section */}
         <div className="relative w-full p-4 sm:p-8 rounded-xl bg-hacking-card-bg overflow-hidden border border-transparent animate-glow-pulse">
           <div className="absolute inset-[-3px] rounded-xl bg-gradient-neon-border animate-pulse-border z-[-1]"></div>
@@ -727,7 +672,7 @@ export default function ResultsPage() {
 
             {/* First Video */}
             <div className="relative bg-gray-900 rounded-lg overflow-hidden border border-hacking-primary/30 w-full mx-auto mb-6 sm:mb-8 -mx-4 sm:mx-0">
-              <div className="w-full h-[70vh] sm:h-[80vh]">
+              <div className="w-full h-[70vh] sm:h-[80vh] relative">
                 <iframe
                   src="https://player.vimeo.com/video/1097295094?h=3cec6d984d&badge=0&autopause=0&player_id=0&app_id=58479&title=0&byline=0&portrait=0"
                   width="100%"
@@ -737,12 +682,25 @@ export default function ResultsPage() {
                   title="Bianca - Whats Espião Depoimento"
                   className="w-full h-full object-cover"
                 ></iframe>
+
+                {/* Green Play Button Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div
+                    className="w-16 h-16 sm:w-20 sm:h-20 bg-hacking-primary rounded-full flex items-center justify-center shadow-2xl animate-pulse border-4 border-white/30"
+                    style={{
+                      boxShadow:
+                        "0 0 20px rgba(0, 255, 0, 0.8), 0 0 40px rgba(0, 255, 0, 0.6), 0 0 60px rgba(0, 255, 0, 0.4)",
+                    }}
+                  >
+                    <Play className="w-6 h-6 sm:w-8 sm:h-8 text-white ml-1" fill="white" />
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Second Video */}
             <div className="relative bg-gray-900 rounded-lg overflow-hidden border border-hacking-primary/30 w-full mx-auto mb-6 sm:mb-8 -mx-4 sm:mx-0">
-              <div className="w-full h-[70vh] sm:h-[80vh]">
+              <div className="w-full h-[70vh] sm:h-[80vh] relative">
                 <iframe
                   src="https://player.vimeo.com/video/1097295099?h=d4cbac1d09&badge=0&autopause=0&player_id=0&app_id=58479&title=0&byline=0&portrait=0"
                   width="100%"
@@ -752,12 +710,25 @@ export default function ResultsPage() {
                   title="Depoimento WhatsEspião 2"
                   className="w-full h-full object-cover"
                 ></iframe>
+
+                {/* Green Play Button Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div
+                    className="w-16 h-16 sm:w-20 sm:h-20 bg-hacking-primary rounded-full flex items-center justify-center shadow-2xl animate-pulse border-4 border-white/30"
+                    style={{
+                      boxShadow:
+                        "0 0 20px rgba(0, 255, 0, 0.8), 0 0 40px rgba(0, 255, 0, 0.6), 0 0 60px rgba(0, 255, 0, 0.4)",
+                    }}
+                  >
+                    <Play className="w-6 h-6 sm:w-8 sm:h-8 text-white ml-1" fill="white" />
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Third Video */}
             <div className="relative bg-gray-900 rounded-lg overflow-hidden border border-hacking-primary/30 w-full mx-auto mb-6 sm:mb-8 -mx-4 sm:mx-0">
-              <div className="w-full h-[70vh] sm:h-[80vh]">
+              <div className="w-full h-[70vh] sm:h-[80vh] relative">
                 <iframe
                   src="https://player.vimeo.com/video/1097295195?h=10b2051a25&badge=0&autopause=0&player_id=0&app_id=58479&title=0&byline=0&portrait=0"
                   width="100%"
@@ -767,6 +738,19 @@ export default function ResultsPage() {
                   title="Depoimento WhatsEspião 3"
                   className="w-full h-full object-cover"
                 ></iframe>
+
+                {/* Green Play Button Overlay */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div
+                    className="w-16 h-16 sm:w-20 sm:h-20 bg-hacking-primary rounded-full flex items-center justify-center shadow-2xl animate-pulse border-4 border-white/30"
+                    style={{
+                      boxShadow:
+                        "0 0 20px rgba(0, 255, 0, 0.8), 0 0 40px rgba(0, 255, 0, 0.6), 0 0 60px rgba(0, 255, 0, 0.4)",
+                    }}
+                  >
+                    <Play className="w-6 h-6 sm:w-8 sm:h-8 text-white ml-1" fill="white" />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -781,7 +765,7 @@ export default function ResultsPage() {
                     "0 0 3px #25D366, 0 0 6px #25D366, 0 0 9px #25D366, 0 0 12px #25D366, 0 0 18px #25D366, 0 0 22px #25D366",
                 }}
               >
-                QUERO DESCOBRIR A VERDADE AGORA 👀
+                DESBLOQUEAR AGORA TUDO POR R$14,90
               </Button>
               <p className="text-gray-400 text-xs sm:text-sm">
                 <Lock className="inline-block w-3 h-3 sm:w-4 sm:h-4 mr-1" />

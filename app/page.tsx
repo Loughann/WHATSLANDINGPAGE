@@ -15,8 +15,6 @@ import {
   MessageCircle,
   Eye,
   MapPin,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,6 +23,8 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 
 export default function WhatsEspiaoPage() {
+  // Hook para detectar mobile
+  const [isMobile, setIsMobile] = useState(false)
   const [selectedGender, setSelectedGender] = useState<string | null>(null)
   const [phoneNumber, setPhoneNumber] = useState<string>("")
   const [remainingVerifications, setRemainingVerifications] = useState<number>(30)
@@ -44,140 +44,16 @@ export default function WhatsEspiaoPage() {
   const [currentUserMessageIndex, setCurrentUserMessageIndex] = useState(0)
   const userMessageTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Testimonials carousel state
-  const testimonials = [
-    {
-      name: "Ana S.",
-      location: "São Paulo",
-      time: "há 2 horas",
-      initial: "A",
-      text: "Descobri que meu namorado estava marcando encontros no WhatsApp enquanto eu trabalhava. Graças ao WhatsEspião pude pegar ele em flagrante!",
-    },
-    {
-      name: "Carlos R.",
-      location: "Rio de Janeiro",
-      time: "há 1 hora",
-      initial: "C",
-      text: "Minha esposa dizia que não usava mais aplicativos, mas descobri que estava ativo TODOS OS DIAS no WhatsApp marcando encontros.",
-    },
-    {
-      name: "Mariana L.",
-      location: "Belo Horizonte",
-      time: "há 3 horas",
-      initial: "M",
-      text: "Ele jurava que não conversava com ninguém, mas o relatório mostrou 15 conversas íntimas com outras mulheres. Agora tenho as provas!",
-    },
-    {
-      name: "Roberto M.",
-      location: "Salvador",
-      time: "há 4 horas",
-      initial: "R",
-      text: "Minha namorada apagava as conversas, mas o WhatsEspião recuperou TUDO. Vi as fotos que ela mandava para outros caras.",
-    },
-    {
-      name: "Juliana F.",
-      location: "Fortaleza",
-      time: "há 5 horas",
-      initial: "J",
-      text: "Descobri que meu marido tinha um perfil fake e conversava com várias mulheres. As evidências estavam todas lá!",
-    },
-    {
-      name: "Lucas P.",
-      location: "Brasília",
-      time: "há 6 horas",
-      initial: "L",
-      text: "Ela dizia que estava trabalhando até tarde, mas o relatório mostrou que estava online conversando com ex-namorados.",
-    },
-    {
-      name: "Patrícia S.",
-      location: "Recife",
-      time: "há 7 horas",
-      initial: "P",
-      text: "Finalmente consegui as provas que precisava! Ele estava marcando encontros enquanto eu cuidava dos filhos.",
-    },
-    {
-      name: "Diego A.",
-      location: "Porto Alegre",
-      time: "há 8 horas",
-      initial: "D",
-      text: "Minha esposa negava tudo, mas o WhatsEspião mostrou as conversas íntimas que ela tinha com o colega de trabalho.",
-    },
-    {
-      name: "Fernanda C.",
-      location: "Curitiba",
-      time: "há 9 horas",
-      initial: "F",
-      text: "Descobri que ele tinha 3 relacionamentos paralelos. O relatório mostrou tudo: horários, fotos e conversas.",
-    },
-    {
-      name: "Rafael T.",
-      location: "Goiânia",
-      time: "há 10 horas",
-      initial: "R",
-      text: "Ela mentia sobre onde estava. O WhatsEspião revelou que estava se encontrando com outros homens há meses.",
-    },
-  ]
-
-  const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0)
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true)
-  const testimonialTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-
-  // Auto-play testimonials carousel
   useEffect(() => {
-    if (isAutoPlaying) {
-      const autoPlay = () => {
-        setCurrentTestimonialIndex((prevIndex) => {
-          // Para mobile, avança de 2 em 2
-          if (window.innerWidth < 640) {
-            return prevIndex >= testimonials.length - 2 ? 0 : prevIndex + 2
-          }
-          // Para desktop, mantém a lógica original
-          return prevIndex >= testimonials.length - 2 ? 0 : prevIndex + 1
-        })
-        testimonialTimeoutRef.current = setTimeout(autoPlay, 4000)
-      }
-
-      testimonialTimeoutRef.current = setTimeout(autoPlay, 4000)
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
     }
 
-    return () => {
-      if (testimonialTimeoutRef.current) {
-        clearTimeout(testimonialTimeoutRef.current)
-      }
-    }
-  }, [isAutoPlaying, testimonials.length])
+    checkMobile()
+    window.addEventListener("resize", checkMobile)
 
-  const nextTestimonial = () => {
-    setIsAutoPlaying(false)
-    setCurrentTestimonialIndex((prevIndex) => {
-      // Para mobile, avança de 2 em 2
-      if (window.innerWidth < 640) {
-        return prevIndex >= testimonials.length - 2 ? 0 : prevIndex + 2
-      }
-      // Para desktop, mantém a lógica original
-      return prevIndex >= testimonials.length - 2 ? 0 : prevIndex + 1
-    })
-    if (testimonialTimeoutRef.current) {
-      clearTimeout(testimonialTimeoutRef.current)
-    }
-    setTimeout(() => setIsAutoPlaying(true), 8000)
-  }
-
-  const prevTestimonial = () => {
-    setIsAutoPlaying(false)
-    setCurrentTestimonialIndex((prevIndex) => {
-      // Para mobile, retrocede de 2 em 2
-      if (window.innerWidth < 640) {
-        return prevIndex <= 0 ? testimonials.length - 2 : prevIndex - 2
-      }
-      // Para desktop, mantém a lógica original
-      return prevIndex <= 0 ? testimonials.length - 2 : prevIndex - 1
-    })
-    if (testimonialTimeoutRef.current) {
-      clearTimeout(testimonialTimeoutRef.current)
-    }
-    setTimeout(() => setIsAutoPlaying(true), 8000)
-  }
+    return () => window.removeEventListener("resize", checkMobile)
+  }, [])
 
   // Efeito para marcar como carregado e iniciar animações
   useEffect(() => {
@@ -193,6 +69,7 @@ export default function WhatsEspiaoPage() {
     const formattedDate = today.toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
+      year: "numeric",
     })
     setCurrentDate(formattedDate)
   }, [])
@@ -202,49 +79,57 @@ export default function WhatsEspiaoPage() {
     const decrementVerifications = () => {
       setRemainingVerifications((prevCount) => {
         if (prevCount > 1) {
-          const randomDelay = Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000 // Atraso aleatório entre 5 e 10 segundos
+          // Intervalos maiores em mobile para reduzir carga
+          const minDelay = isMobile ? 8000 : 5000
+          const maxDelay = isMobile ? 15000 : 10000
+          const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay
           timeoutRef.current = setTimeout(decrementVerifications, randomDelay)
           return prevCount - 1
         } else {
           if (timeoutRef.current) {
-            clearTimeout(timeoutRef.current) // Limpa o timeout quando chega a 1
+            clearTimeout(timeoutRef.current)
           }
-          return 1 // Garante que o valor não desça de 1
+          return 1
         }
       })
     }
 
     // Inicia o primeiro decremento
-    const initialDelay = Math.floor(Math.random() * (10000 - 5000 + 1)) + 5000
+    const minDelay = isMobile ? 8000 : 5000
+    const maxDelay = isMobile ? 15000 : 10000
+    const initialDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay
     timeoutRef.current = setTimeout(decrementVerifications, initialDelay)
 
-    // Limpa o timeout ao desmontar o componente
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
       }
     }
-  }, [])
+  }, [isMobile])
 
   // Efeito para alternar as mensagens de usuários
   useEffect(() => {
     const rotateUserMessage = () => {
       setCurrentUserMessageIndex((prevIndex) => (prevIndex + 1) % userMessages.length)
-      const randomDelay = Math.floor(Math.random() * (8000 - 4000 + 1)) + 4000 // Atraso aleatório entre 4 e 8 segundos
+      // Intervalos maiores em mobile
+      const minDelay = isMobile ? 6000 : 4000
+      const maxDelay = isMobile ? 12000 : 8000
+      const randomDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay
       userMessageTimeoutRef.current = setTimeout(rotateUserMessage, randomDelay)
     }
 
     // Inicia a primeira rotação de mensagem
-    const initialDelay = Math.floor(Math.random() * (8000 - 4000 + 1)) + 4000
+    const minDelay = isMobile ? 6000 : 4000
+    const maxDelay = isMobile ? 12000 : 8000
+    const initialDelay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay
     userMessageTimeoutRef.current = setTimeout(rotateUserMessage, initialDelay)
 
-    // Limpa o timeout ao desmontar o componente
     return () => {
       if (userMessageTimeoutRef.current) {
         clearTimeout(userMessageTimeoutRef.current)
       }
     }
-  }, [userMessages.length])
+  }, [userMessages.length, isMobile])
 
   const formatPhoneNumber = (value: string) => {
     if (!value) return ""
@@ -326,13 +211,13 @@ export default function WhatsEspiaoPage() {
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{
           __html: `
-        window.pixelId = "6859c44c8c3a8e69c4f45491";
-        var a = document.createElement("script");
-        a.setAttribute("async", "");
-        a.setAttribute("defer", "");
-        a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
-        document.head.appendChild(a);
-      `,
+      window.pixelId = "6859c44c8c3a8e69c4f45491";
+      var a = document.createElement("script");
+      a.setAttribute("async", "");
+      a.setAttribute("defer", "");
+      a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+      document.head.appendChild(a);
+    `,
         }}
       />
 
@@ -342,7 +227,7 @@ export default function WhatsEspiaoPage() {
       {/* Barra de aviso de consulta gratuita */}
       <div className="fixed top-0 left-0 w-full text-white text-center py-2 z-50 shadow-lg bg-[rgba(255,0,0,1)]">
         <p className="text-base sm:text-lg md:text-xl font-bold px-4 animate-text-pulse-subtle">
-          Você possui apenas 1 consulta totalmente gratuita válida somente até dia {currentDate}.
+          Você GANHOU 1 Analise Completa 100% GRATUITA válida somente até o dia {currentDate}.
         </p>
       </div>
 
@@ -356,9 +241,9 @@ export default function WhatsEspiaoPage() {
           }`}
         >
           <div
-            className={`flex items-center justify-center gap-4 mb-6 transition-all duration-1200 ease-out delay-200 ${
-              isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95"
-            }`}
+            className={`flex items-center justify-center gap-4 mb-6 transition-all ${
+              isMobile ? "duration-500" : "duration-1200"
+            } ease-out delay-200 ${isLoaded ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
           >
             <div className="w-16 h-16 flex items-center justify-center">
               <Image
@@ -367,9 +252,15 @@ export default function WhatsEspiaoPage() {
                 width={64}
                 height={64}
                 className="w-full h-full object-contain"
+                loading="eager"
+                priority
               />
             </div>
-            <h1 className="text-5xl font-extrabold tracking-tight text-whatsapp-accent-main animate-title-glow flex flex-col items-center">
+            <h1
+              className={`text-5xl font-extrabold tracking-tight text-whatsapp-accent-main ${
+                isMobile ? "" : "animate-title-glow"
+              } flex flex-col items-center`}
+            >
               <span className="text-6xl">WHATS</span>
               <span className="text-4xl">ESPIÃO</span>
             </h1>
@@ -380,6 +271,7 @@ export default function WhatsEspiaoPage() {
                 width={64}
                 height={64}
                 className="w-full h-full object-contain"
+                loading="lazy"
               />
             </div>
           </div>
@@ -392,7 +284,7 @@ export default function WhatsEspiaoPage() {
             A desconfiança te paralisa? Descubra o histórico de conversas no WhatsApp.
           </h2>
           <p
-            className={`text-lg text-whatsapp-text-light mb-8 max-w-3xl transition-all duration-1000 ease-out delay-500 ${
+            className={`text-whatsapp-text-light mb-8 max-w-3xl transition-all duration-1000 ease-out delay-500 text-base ${
               isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             }`}
           >
@@ -437,7 +329,7 @@ export default function WhatsEspiaoPage() {
             Junte-se às mais de <span className="font-bold text-whatsapp-text-light">7 mil pessoas</span> que usaram
             hoje para descobrir a verdade.
             <br />
-            <span className="text-xs text-emerald-500">(+50.000 investigações de sucesso)</span>
+            <span className="text-emerald-500 text-sm">(+50.000 investigações de sucesso)</span>
           </p>
         </header>
         {/* Call to Action Button */}
@@ -464,72 +356,6 @@ export default function WhatsEspiaoPage() {
         >
           Investigação válida até {currentDate}
         </p>
-        {/* Feature Cards Section */}
-        <section
-          className={`grid md:grid-cols-3 gap-8 w-full max-w-5xl mb-16 transition-all duration-1200 ease-out delay-1100 ${
-            isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-        >
-          {/* Card 1: Descubra a Verdade */}
-          <div
-            className={`w-full p-4 rounded-lg border border-hacking-primary/50 text-center animate-led-glow-pulse transition-all duration-800 ease-out delay-1200 ${
-              isLoaded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-8"
-            }`}
-          >
-            <div className="flex flex-col items-center">
-              <div className="p-4 rounded-full bg-gradient-to-br from-whatsapp-accent-main to-whatsapp-accent-dark mb-4">
-                <Heart className="w-8 h-8 text-whatsapp-text-light animate-pulse" />
-              </div>
-              <h3 className="text-2xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark animate-pulse">
-                Descubra a Verdade
-              </h3>
-              <p className="text-whatsapp-text-light">
-                Mesmo que ele(a) use um nome falso ou outra foto, nosso sistema encontra. Descubra a verdade que tentam
-                esconder de você.
-              </p>
-            </div>
-          </div>
-
-          {/* Card 2: Provas Irrefutáveis */}
-          <div
-            className={`w-full p-4 rounded-lg border border-hacking-primary/50 text-center animate-led-glow-pulse transition-all duration-800 ease-out delay-1300 ${
-              isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-            }`}
-          >
-            <div className="flex flex-col items-center">
-              <div className="p-4 rounded-full bg-gradient-to-br from-whatsapp-accent-main to-whatsapp-accent-dark mb-4">
-                <MessageCircle className="w-8 h-8 text-whatsapp-text-light animate-pulse" />
-              </div>
-              <h3 className="text-2xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark animate-pulse">
-                Provas Irrefutáveis
-              </h3>
-              <p className="text-whatsapp-text-light">
-                Veja com quem ele(a) conversa, as fotos que usa e até o início das conversas. A verdade, na palma da sua
-                mão.
-              </p>
-            </div>
-          </div>
-
-          {/* Card 3: Proteja-se com Sigilo */}
-          <div
-            className={`w-full p-4 rounded-lg border border-hacking-primary/50 text-center animate-led-glow-pulse transition-all duration-800 ease-out delay-1400 ${
-              isLoaded ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
-            }`}
-          >
-            <div className="flex flex-col items-center">
-              <div className="p-4 rounded-full bg-gradient-to-br from-whatsapp-accent-main to-whatsapp-accent-dark mb-4">
-                <ShieldCheck className="w-8 h-8 text-whatsapp-text-light animate-pulse" />
-              </div>
-              <h3 className="text-2xl font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark animate-pulse">
-                Proteja-se com Sigilo
-              </h3>
-              <p className="text-whatsapp-text-light">
-                Sua identidade é 100% protegida. Ele(a) NUNCA saberá que você investigou. Aja com segurança e recupere
-                sua paz.
-              </p>
-            </div>
-          </div>
-        </section>
         {/* What You'll Discover Section */}
         <section
           className={`w-full max-w-4xl mb-16 transition-all duration-1200 ease-out delay-1200 ${
@@ -539,13 +365,25 @@ export default function WhatsEspiaoPage() {
           <div className="relative p-8 rounded-xl overflow-hidden border border-transparent">
             <div className="absolute inset-[-3px] rounded-xl bg-gradient-neon-border animate-pulse-border z-[-1]"></div>
             <div className="relative z-10">
-              <h3 className="text-3xl font-bold text-center text-hacking-primary animate-led-text-glow mb-8">
+              <h3
+                className={`text-3xl font-bold text-center px-0 py-0 mt-[-33px] text-[rgba(36,206,99,1)] ${
+                  isMobile ? "" : "animate-led-text-glow"
+                } mb-6`}
+              >
                 O QUE VOCÊ VAI DESCOBRIR SOBRE SEU PARCEIRO
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex items-start gap-4 p-6 rounded-lg border border-hacking-primary/50 animate-led-glow-pulse backdrop-blur-sm bg-black/20">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark flex items-center justify-center flex-shrink-0 mt-1 animate-hacking-icon-glow-primary">
+                <div
+                  className={`flex items-start gap-4 p-6 rounded-lg border border-hacking-primary/50 ${
+                    isMobile ? "" : "animate-led-glow-pulse"
+                  } backdrop-blur-sm bg-black/20`}
+                >
+                  <div
+                    className={`w-12 h-12 rounded-full bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark flex items-center justify-center flex-shrink-0 mt-1 ${
+                      isMobile ? "" : "animate-hacking-icon-glow-primary"
+                    }`}
+                  >
                     <Heart className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -556,8 +394,16 @@ export default function WhatsEspiaoPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-6 rounded-lg border border-hacking-primary/50 animate-led-glow-pulse backdrop-blur-sm bg-black/20">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark flex items-center justify-center flex-shrink-0 mt-1 animate-hacking-icon-glow-primary">
+                <div
+                  className={`flex items-start gap-4 p-6 rounded-lg border border-hacking-primary/50 ${
+                    isMobile ? "" : "animate-led-glow-pulse"
+                  } backdrop-blur-sm bg-black/20`}
+                >
+                  <div
+                    className={`w-12 h-12 rounded-full bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark flex items-center justify-center flex-shrink-0 mt-1 ${
+                      isMobile ? "" : "animate-hacking-icon-glow-primary"
+                    }`}
+                  >
                     <MapPin className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -568,8 +414,16 @@ export default function WhatsEspiaoPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-6 rounded-lg border border-hacking-primary/50 animate-led-glow-pulse backdrop-blur-sm bg-black/20">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark flex items-center justify-center flex-shrink-0 mt-1 animate-hacking-icon-glow-primary">
+                <div
+                  className={`flex items-start gap-4 p-6 rounded-lg border border-hacking-primary/50 ${
+                    isMobile ? "" : "animate-led-glow-pulse"
+                  } backdrop-blur-sm bg-black/20`}
+                >
+                  <div
+                    className={`w-12 h-12 rounded-full bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark flex items-center justify-center flex-shrink-0 mt-1 ${
+                      isMobile ? "" : "animate-hacking-icon-glow-primary"
+                    }`}
+                  >
                     <Eye className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -580,177 +434,21 @@ export default function WhatsEspiaoPage() {
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4 p-6 rounded-lg border border-hacking-primary/50 animate-led-glow-pulse backdrop-blur-sm bg-black/20">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark flex items-center justify-center flex-shrink-0 mt-1 animate-hacking-icon-glow-primary">
+                <div
+                  className={`flex items-start gap-4 p-6 rounded-lg border border-hacking-primary/50 ${
+                    isMobile ? "" : "animate-led-glow-pulse"
+                  } backdrop-blur-sm bg-black/20`}
+                >
+                  <div
+                    className={`w-12 h-12 rounded-full bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark flex items-center justify-center flex-shrink-0 mt-1 ${
+                      isMobile ? "" : "animate-hacking-icon-glow-primary"
+                    }`}
+                  >
                     <MessageCircle className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <h4 className="font-bold text-hacking-primary mb-2">CONVERSAS EXPLÍCITAS</h4>
                     <p className="text-whatsapp-text-light text-base">O que ele(a) está dizendo para outras pessoas</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        {/* Testimonials Carousel Section */}
-        <section
-          className={`w-full max-w-4xl mb-16 transition-all duration-1200 ease-out delay-1300 ${
-            isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-        >
-          <div className="relative p-4 sm:p-8 rounded-xl overflow-hidden border border-transparent">
-            <div className="absolute inset-[-3px] rounded-xl bg-gradient-neon-border animate-pulse-border z-[-1]"></div>
-            <div className="relative z-10">
-              <h3 className="text-2xl sm:text-3xl font-bold text-center text-hacking-primary animate-led-text-glow mb-6 sm:mb-8">
-                NÃO FIQUE NA DÚVIDA - VEJA O QUE OUTROS DESCOBRIRAM
-              </h3>
-
-              {/* Mobile Version - Stack Layout */}
-              <div className="block sm:hidden">
-                <div className="space-y-4">
-                  {/* Show only 2 testimonials at a time on mobile */}
-                  {testimonials
-                    .slice(currentTestimonialIndex, currentTestimonialIndex + 2)
-                    .map((testimonial, index) => (
-                      <div
-                        key={currentTestimonialIndex + index}
-                        className="flex gap-3 p-4 rounded-lg border border-hacking-primary/50 animate-led-glow-pulse backdrop-blur-sm bg-black/20"
-                      >
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark flex items-center justify-center flex-shrink-0 animate-hacking-icon-glow-primary">
-                          <span className="text-white font-bold text-sm">{testimonial.initial}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="mb-2">
-                            <h4 className="font-bold text-hacking-primary text-sm">{testimonial.name}</h4>
-                            <p className="text-gray-400 text-xs">
-                              {testimonial.location} • {testimonial.time}
-                            </p>
-                          </div>
-                          <p className="text-whatsapp-text-light italic text-xs leading-relaxed">
-                            "{testimonial.text}"
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-
-                {/* Mobile Navigation */}
-                <div className="flex justify-between items-center mt-6">
-                  <button
-                    onClick={prevTestimonial}
-                    className="w-10 h-10 rounded-full bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark flex items-center justify-center hover:opacity-80 transition-opacity shadow-lg"
-                    aria-label="Depoimento anterior"
-                  >
-                    <ChevronLeft className="w-5 h-5 text-white" />
-                  </button>
-
-                  {/* Mobile Dots Indicator */}
-                  <div className="flex gap-2">
-                    {Array.from({ length: Math.ceil(testimonials.length / 2) }).map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setCurrentTestimonialIndex(index * 2)
-                          setIsAutoPlaying(false)
-                          if (testimonialTimeoutRef.current) {
-                            clearTimeout(testimonialTimeoutRef.current)
-                          }
-                          setTimeout(() => setIsAutoPlaying(true), 8000)
-                        }}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                          Math.floor(currentTestimonialIndex / 2) === index
-                            ? "bg-whatsapp-accent-main w-4"
-                            : "bg-gray-500"
-                        }`}
-                        aria-label={`Ir para página ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={nextTestimonial}
-                    className="w-10 h-10 rounded-full bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark flex items-center justify-center hover:opacity-80 transition-opacity shadow-lg"
-                    aria-label="Próximo depoimento"
-                  >
-                    <ChevronRight className="w-5 h-5 text-white" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Desktop Version - Original Carousel */}
-              <div className="hidden sm:block">
-                <div className="relative">
-                  {/* Navigation Buttons */}
-                  <button
-                    onClick={prevTestimonial}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark flex items-center justify-center hover:opacity-80 transition-opacity shadow-lg"
-                    aria-label="Depoimento anterior"
-                  >
-                    <ChevronLeft className="w-5 h-5 text-white" />
-                  </button>
-
-                  <button
-                    onClick={nextTestimonial}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark flex items-center justify-center hover:opacity-80 transition-opacity shadow-lg"
-                    aria-label="Próximo depoimento"
-                  >
-                    <ChevronRight className="w-5 h-5 text-white" />
-                  </button>
-
-                  {/* Testimonials Container */}
-                  <div className="overflow-hidden mx-12">
-                    <div
-                      className="flex transition-transform duration-500 ease-in-out gap-6"
-                      style={{
-                        transform: `translateX(-${currentTestimonialIndex * 50}%)`,
-                      }}
-                    >
-                      {testimonials.map((testimonial, index) => (
-                        <div
-                          key={index}
-                          className="flex-shrink-0 w-1/2 flex gap-4 p-4 rounded-lg border border-hacking-primary/50 animate-led-glow-pulse backdrop-blur-sm bg-black/20"
-                        >
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-whatsapp-accent-main to-whatsapp-accent-dark flex items-center justify-center flex-shrink-0 animate-hacking-icon-glow-primary">
-                            <span className="text-white font-bold text-lg">{testimonial.initial}</span>
-                          </div>
-                          <div>
-                            <div className="mb-2">
-                              <h4 className="font-bold text-hacking-primary">{testimonial.name}</h4>
-                              <p className="text-gray-400 text-sm">
-                                {testimonial.location} • {testimonial.time}
-                              </p>
-                            </div>
-                            <p className="text-whatsapp-text-light italic text-sm leading-relaxed">
-                              "{testimonial.text}"
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Desktop Dots Indicator */}
-                  <div className="flex justify-center mt-6 gap-2">
-                    {Array.from({ length: testimonials.length - 1 }).map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setCurrentTestimonialIndex(index)
-                          setIsAutoPlaying(false)
-                          if (testimonialTimeoutRef.current) {
-                            clearTimeout(testimonialTimeoutRef.current)
-                          }
-                          setTimeout(() => setIsAutoPlaying(true), 8000)
-                        }}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                          index === currentTestimonialIndex
-                            ? "bg-whatsapp-accent-main w-6"
-                            : "bg-gray-500 hover:bg-gray-400"
-                        }`}
-                        aria-label={`Ir para depoimento ${index + 1}`}
-                      />
-                    ))}
                   </div>
                 </div>
               </div>
@@ -910,7 +608,9 @@ export default function WhatsEspiaoPage() {
             <Button
               onClick={handleExposeTruth}
               disabled={!selectedGender || getCleanPhoneNumber(phoneNumber).length !== 11}
-              className={`w-full py-4 rounded-xl text-xl font-bold shadow-xl hover:opacity-90 hover:shadow-2xl hover:scale-105 transition-all mb-6 animate-led-pulse border-2 duration-800 ease-out delay-2400 ${
+              className={`w-full py-4 rounded-xl text-xl font-bold shadow-xl hover:opacity-90 hover:shadow-2xl hover:scale-105 transition-all mb-6 ${
+                isMobile ? "" : "animate-led-pulse"
+              } border-2 duration-800 ease-out delay-2400 ${
                 isLoaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
               }`}
               style={{
@@ -956,6 +656,22 @@ export default function WhatsEspiaoPage() {
           </div>
         </section>
       </div>
+
+      {/* Footer Section */}
+      <footer className="relative z-10 w-full py-8 border-t border-gray-700/50 mt-6">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-400">
+            <a href="#" className="hover:text-whatsapp-accent-main transition-colors">
+              Políticas de Privacidade
+            </a>
+            <span className="text-gray-600">|</span>
+            <a href="#" className="hover:text-whatsapp-accent-main transition-colors">
+              Cookies
+            </a>
+          </div>
+          <p className="text-sm text-gray-400">©2025 – Todos os Direitos reservados</p>
+        </div>
+      </footer>
     </div>
   )
 }

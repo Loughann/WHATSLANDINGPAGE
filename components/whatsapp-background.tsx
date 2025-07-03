@@ -9,6 +9,7 @@ const WhatsAppBackground: React.FC = () => {
   const createFloatingElement = useCallback(() => {
     if (!containerRef.current) return
 
+    const isMobile = window.innerWidth < 768
     const element = document.createElement("div")
     element.className = "floating-whatsapp-element"
 
@@ -16,10 +17,16 @@ const WhatsAppBackground: React.FC = () => {
     const startX = Math.random() * window.innerWidth
     const startY = window.innerHeight + 50
 
-    // Configurações de animação aleatórias
-    const duration = 15000 + Math.random() * 10000 // 15-25 segundos
-    const size = 30 + Math.random() * 40 // 30-70px
-    const opacity = 0.05 + Math.random() * 0.1 // 0.05-0.15 (mais transparente)
+    // Configurações de animação mais leves para mobile
+    const duration = isMobile
+      ? 20000 + Math.random() * 10000 // Mais lento em mobile (20-30s)
+      : 15000 + Math.random() * 10000 // Desktop (15-25s)
+    const size = isMobile
+      ? 20 + Math.random() * 25 // Menor em mobile (20-45px)
+      : 30 + Math.random() * 40 // Desktop (30-70px)
+    const opacity = isMobile
+      ? 0.03 + Math.random() * 0.05 // Mais transparente em mobile
+      : 0.05 + Math.random() * 0.1 // Desktop
     const rotation = Math.random() * 360
 
     // Estilo do elemento
@@ -37,7 +44,7 @@ const WhatsAppBackground: React.FC = () => {
       background-repeat: no-repeat;
       background-position: center;
       transform: rotate(${rotation}deg);
-      filter: hue-rotate(${Math.random() * 60}deg) brightness(1.2);
+      ${isMobile ? "" : `filter: hue-rotate(${Math.random() * 60}deg) brightness(1.2);`}
     `
 
     containerRef.current.appendChild(element)
@@ -68,17 +75,22 @@ const WhatsAppBackground: React.FC = () => {
   }, [])
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    // Reduz a frequência de criação de elementos em mobile
+    const isMobile = window.innerWidth < 768
+    const interval = isMobile ? 4000 : 2000 // 4 segundos em mobile vs 2 segundos em desktop
+    const initialElements = isMobile ? 1 : 3 // Menos elementos iniciais em mobile
+
+    const intervalId = setInterval(() => {
       createFloatingElement()
-    }, 2000) // Novo elemento a cada 2 segundos
+    }, interval)
 
     // Criar alguns elementos iniciais
-    for (let i = 0; i < 3; i++) {
-      setTimeout(() => createFloatingElement(), i * 1000)
+    for (let i = 0; i < initialElements; i++) {
+      setTimeout(() => createFloatingElement(), i * (isMobile ? 2000 : 1000))
     }
 
     return () => {
-      clearInterval(interval)
+      clearInterval(intervalId)
       if (containerRef.current) {
         containerRef.current.innerHTML = ""
       }
@@ -90,16 +102,16 @@ const WhatsAppBackground: React.FC = () => {
       {/* Fundo preto com gradiente mais escuro */}
       <div className="fixed inset-0 bg-gradient-to-br from-black via-gray-950 to-black z-0" />
 
-      {/* Efeitos de luz verde mais sutis */}
+      {/* Efeitos de luz verde mais sutis - reduzidos em mobile */}
       <div className="fixed inset-0 z-0">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500/3 rounded-full blur-3xl animate-pulse" />
         <div className="absolute top-3/4 right-1/4 w-80 h-80 bg-emerald-500/3 rounded-full blur-3xl animate-pulse delay-1000" />
         <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-lime-500/3 rounded-full blur-3xl animate-pulse delay-2000" />
       </div>
 
-      {/* Partículas verdes mais sutis */}
+      {/* Partículas verdes reduzidas para mobile */}
       <div className="fixed inset-0 z-0">
-        {[...Array(20)].map((_, i) => (
+        {[...Array(window.innerWidth < 768 ? 10 : 20)].map((_, i) => (
           <div
             key={i}
             className="absolute w-1 h-1 bg-green-400/20 rounded-full animate-ping"
